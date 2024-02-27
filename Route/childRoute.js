@@ -7,12 +7,10 @@ const Router = express.Router();
 Router.route("/child")
     .get(authorize,childControllers.getAllChildern)
     .post(authorize,insertData,validator,childControllers.inserChild)
-    .put(authorize,validator,childControllers.putChild)
     .delete(authorize,childControllers.deletechild)
 
 
-    Router.route("/child/:id")
-           .get(childControllers.getChildById)
+   
 
 
 

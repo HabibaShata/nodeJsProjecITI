@@ -4,18 +4,21 @@ const mongoose = require("mongoose");
 const childRoute = require("./Route/childRoute");
 const teacherRoute = require("./Route/teacherRoute");
 const classRoute = require("./Route/classRoute");
-const { login } = require("./Route/loginRoute.js");
+const loginRoute = require("./Route/loginRoute.js");
 const { authorize } = require("./Controllers/loginController.js");
 const multer = require("multer");// parse to  imges
 const path = require("path");
 const bodyParser = require("body-parser");
 const port = process.env.PORT || 8080;
+require('dotenv').config();
 
-const uri = 'mongodb://localhost:27017/mydatabase';
+const uri = 'mongodb://localhost:27017/nodeJsProject';
 
 //================================
+// server.use(express.json(),
+//     express.urlencoded({ extended: false }));
+server.use(bodyParser.urlencoded({ extended: true }));
 server.use(bodyParser.json());
-server.use(bodyParser.urlencoded()); 3
 //================================
 
 
@@ -65,15 +68,12 @@ const filterFile = (req, file, cb) => {
 server.use("/images", express.static(path.join(__dirname, "images")));
 server.use(multer({ storage, filterFile }).single("Image"));
 
-// server.use(express.json(),
-//     express.urlencoded({ extended: false }));
+
 
 // authentication 
-server.use(login);
-//server.use(authorize);
+server.use(loginRoute);
 server.use(teacherRoute);
 server.use(childRoute);
-server.use(classRoute);
 
 
 

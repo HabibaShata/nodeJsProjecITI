@@ -1,61 +1,131 @@
 // get all Class
-const classes=require("../Model/classSchema");
-const {body}=require("express-validator");
+const classes = require("../Model/classSchema");
+const { body } = require("express-validator");
+const bcrypt = require('bcrypt');
 
-exports.getAllClass = (req, res, next) => {
 
 
-    let errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        let error = new Error();
-        error.status = 500;
-        error.message = errors.array().reduce((current, object) => { current + object.msg, " ,", "" });
-        throw error;
-    }
-    if (req.role == "admin" ) {
-
+//=======================================================
+//==================get all classes=====================
+//=======================================================
+exports.getAllClass = (request, response, next) => {
+    if (request.role == "admin") {
         classes.find({})
             .then((data) => {
-                responce.status(200).json({ data });
+                response.status(200).json({ message: "all classes", data });
             })
             .catch((error) => {
                 next(error);
             });
-
     }
     else {
-        next(new Error("Not Authorized"));
+        next(new Error("not authorized"));
+    }
+}
+
+//=======================================================
+//==================insert new class=====================
+//=======================================================
+
+exports.insertClass = (request, response, next) => {
+
+    if (request.role == "admin") {
+        bcrypt.genSalt(10, (error, salt) => {
+            if (error) {
+                error.status = 500;
+                error.message = "can not decrupt the pass";
+                throw error;
+            }
+            bcrypt.hash(request.body.password, salt, (error, hash) => {
+                if (error) {
+                    error.status = 500;
+                    error.message = "can not decrupt the pass";
+                    throw error;
+                }
+                let object = new classes({
+                    name: request.body.name,
+                    superVisor: request.body.superVisor,
+                    children: request.body.children
+                });
+                object.save()
+                    .then((data) => {
+                        response.status(200).json({ message: "inseted data", data });
+                    })
+                    .catch((error) => {
+
+                        next(error);
+                    })
+
+            })
+
+        })
+    }
+    else {
+        next(new Error("not authorized"));
+    }
+}
+
+
+//=======================================================
+//==================update class=====================
+//=======================================================
+exports.updateClass = (request, response, next) => {
+
+    if (request.role == "admin") {
+
+        bcrypt.genSalt(10, (error, salt) => {
+            if (error) {
+                error.status = 500;
+                error.message = "can not decrupt the pass";
+                throw error;
+            }
+            bcrypt.hash(request.body.password, salt, (error, hash) => {
+                if (error) {
+                    error.status = 500;
+                    error.message = "can not decrupt the pass";
+                    throw error;
+                }
+                classes.findByIdAndUpdate(request.body._id, {
+                    $set: {
+                        name: request.body.name,
+                        superVisor: request.body.superVisor,
+                        children: request.body.children
+                    }
+                })
+                    .then((data) => {
+                        response.status(200).json({ message: "updateted", data });
+                    })
+                    .catch((error) => {
+
+                        next(error);
+                    });
+            })
+        })
+    }
+    else {
+        next(new Error("not authorized"));
 
     }
 }
 
-// insert new class
-exports.insertClass= (req, res, next) => {
+//=======================================================
+//==================deleteClass=====================
+//=======================================================
 
+exports.deleteClass = (request, response, next) => {
+    if(request.role=="admin")
+    {
+        classes.findByIdAndDelete(request.body._id)
+        .then((data) => {
+            response.status(200).json({ message: "deleted ", data });
+        })
+        .catch((error) => {
 
+            next(error);
+        });
+    }
+    else{
+        next(new Error("not authorized"));
 
-
-    
-    let newClass=new classes(req.body);
-    newClass.save()
-            .then((data)=>{
-
-                res.status(200).json(data);
-            }).catch((e)=>
-            {
-                next(e);
-            })
-
-}
-// get all Class
-exports.updateClass = (req, res, next) => {
-    console.log(req.body);
-    const { id, className } = req.body; // Destructuring to get id and className from req.body
-
-    res.status(200).json({ data: "update "+id});
-}
-
-// get all Class
-exports.deleteClass = (req, res, next) => {
-    res.status(200).json({ data: "delete specific class " });
+    }
 }

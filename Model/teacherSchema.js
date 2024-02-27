@@ -39,7 +39,4 @@ const schema = new mongoose.Schema({
 });
 
 // Create a model from the schema
-
-
-
 module.exports = mongoose.model("teachers", schema);

@@ -3,7 +3,7 @@ const {body}=require("express-validator");
 
  module.exports.insertData=[
     body("_id").isInt().withMessage("_id must be integer"),
-    body("fullname").isString().withMessage("full name must be string "),
+    body("fullname").isAlpha().withMessage("full name must be string "),
     body("level").isString().withMessage("level must be string "),
     body("age").isInt().withMessage("age must be integer"),
     body('address.city').isString().withMessage('City must be a string'),

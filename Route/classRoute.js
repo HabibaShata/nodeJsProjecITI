@@ -7,7 +7,7 @@ const Router = express.Router();
 Router.route("/class")
     .get(classControllers.getAllClass)
     .post(insertData,validator,classControllers.insertClass)
-    .put(classControllers.updateClass)
+    .put(insertData,validator,classControllers.updateClass)
     .delete(classControllers.deleteClass)
 
 

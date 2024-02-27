@@ -1,4 +1,5 @@
 const child = require("../Model/childSchema");
+const teacher = require("./../Model/teacherSchema");
 const { body } = require("express-validator");
 
 
@@ -6,53 +7,71 @@ const { body } = require("express-validator");
 //==================get all children=====================
 //=======================================================
 
-exports.getAllChildern = (req, res, next) => {
-    let errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        let error = new Error();
-        error.status = 500;
-        error.message = errors.array().reduce((current, object) => { current + object.msg, " ,", "" });
-        throw error;
-    }
-    if (req.role == "admin" || req.role == "teachers") {
+exports.getAllChildern = (request, response, next) => {
 
-        child.find({}).populate({ path: "teachers", model: teacher })
-            .then((data) => {
-                responce.status(200).json({ message: "get child data", data });
-            })
-            .catch((error) => {
-                next(error);
-            });
-
+    if(request.role=="teacher" || request.role=="admin" )
+    {
+        child.find({}).populate({ path: "teachers" ,model: teacher})
+        .then((data) => {
+            response.status(200).json({ message: "get child data", data });
+        })
+        .catch((error) => {
+            next(error);
+        });
+   
     }
-    else {
-        next(new Error("Not Authorized"));
+    else
+    {
+        next (new Error("Not Authorized"));
 
     }
-
-
-}
-//get specific  student
-
-exports.getChildById = (req, res, next) => {
-    console.log("using query pram", req.params.id);
-    console.log("using query string", req.query);
-    res.status(201).json({ data: "specific child " + req.params.id });
 }
 
 //=======================================================
 //==================insert children=====================
 //=======================================================
-exports.inserChild = (request, res, next) => {
-    let errors = validationResult(request);
-    if (!errors.isEmpty()) {
-        let error = new Error();
-        error.status = 500;
-        error.message = errors.array().reduce((current, object) => { current + object.msg, "" });
-        throw error;
+exports.inserChild = (request, response, next) => {
+
+    if(request.role=="admin")
+    { 
+    let object = new child({
+        fullname: request.body.fullname,
+        age: request.body.age,
+        level: request.body.level,
+        address: {
+            city: request.body.city,
+            street: request.body.street,
+            building: request.body.building
+        },
+        role: "child",
+        image: request.file.filename,
+        teacherId: request.body.teacherId
+    });
+    object.save()
+        .then((data) => {
+            response.status(200).json({ message: "adedd succe", data });
+        })
+        .catch((error) => {
+            next(error);
+        });
     }
-    if (request.role == "Admin") {
-        let object = new child({
+    else
+    {
+        next (new Error("not authorized"));
+    }
+
+}
+
+//=======================================================
+//==================update children=====================
+//=======================================================
+exports.updateChild = (request, response, next) => {
+
+
+    if(request.role=="admin")
+    {
+    child.findByIdAndUpdate(request.body._id, {
+        $set: {
             fullname: request.body.fullname,
             age: request.body.age,
             level: request.body.level,
@@ -63,86 +82,40 @@ exports.inserChild = (request, res, next) => {
             },
             role: "child",
             image: request.file.filename,
-            teacherId: request.body.teacherId
-        });
-
-        object.save()
-            .then((data) => {
-                responce.status(200).json({ message: "insert child data", data });
-            })
-            .catch((error) => {
-                next(error);
-            });
-    }
-    else {
-        next(new Error("not authorized"));
-    }
-
-}
-//update
-exports.updateChild = (request, res, next) => {
-
-    let errors = validationResult(request);
-    if (!errors.isEmpty()) {
-        let error = new Error();
-        error.status = 500;
-        error.message = errors.array().reduce((current, object) => { current + object.msg, "" });
-        throw error;
-    }
-    if (request.role == "admin") {
-        child.findByIdAndUpdate(request.body._id, {
-            $set: {
-                fullname: request.body.fullname,
-                age: request.body.age,
-                level: request.body.level,
-                address: {
-                    city: request.body.city,
-                    street: request.body.street,
-                    building: request.body.building
-                },
-                role: "child",
-                image: request.file.filename,
-                teacherId: request.body.teacherId  
-            }
+            teacherId: request.body.teacherId  
+        }
+    })
+        .then((data) => {
+            response.status(200).json({ message: "updated sucessfully", data });
         })
-            .then((data) => {
-                responce.status(200).json({ message: "update child data", data });
-            })
-            .catch((error) => {
-                next(error);
-            });
+        .catch((error) => {
+            next(error);
+        });
     }
-    else {
-        next(new Error("not authorized"));
+    else
+    {
+        next (new Error("not authorized"));
     }
+}
 
-}
-//put
-exports.putChild = (req, res, next) => {
-    res.status(200).json({ data: "update child  userdata" });
-}
-//patch
-exports.patchChild = (req, res, next) => {
-    res.status(200).json({ data: "update child  userdata" });
-}
 //=======================================================
 //==================delete child=====================
 //=======================================================
-exports.deletechild = (req, res, next) => {
+exports.deletechild = (request, response, next) => {
 
-    if (req.role == "admin") {
-        child.findOneAndDelete({
-            _id: req.body._id
+
+    if(request.role=="admin")
+    {
+    child.findByIdAndDelete({ _id: request.body._id })
+        .then((data) => {
+            response.status(200).json({ message: "deleted ", data });
         })
-            .then((data) => {
-
-                res.status(200).json({ data: "delete specified  child" });
-
-            })
-            .catch((error) => {
-                next(error);
-            })
-    } else {
-        next(new Error("Not authorized"));
+        .catch((error) => {
+            next(error);
+        });
+    }
+    else
+    {
+        next(new Error("not authorized"));
     }
 }
